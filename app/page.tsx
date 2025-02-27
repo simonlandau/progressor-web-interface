@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import * as React from "react";
 import DeviceConnection from "./components/DeviceConnection";
 import ForceMeasurement from "./components/ForceMeasurement";
 
@@ -29,9 +30,13 @@ export default function Home() {
 
       <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         <p>
-          This application requires a browser that supports Web Bluetooth API.
+          Web Bluetooth API compatible browser (Chrome, Edge, Opera on desktop and Android) required.
           <br />
-          Compatible with Chrome, Edge, and Opera on desktop and Android.
+          This unofficial project is not affiliated with Tindeq.
+          <br />
+          <a href="https://github.com/simonlandau/progressor-web-interface" target="_blank" rel="noopener noreferrer">
+            View source code on GitHub
+          </a>
         </p>
       </footer>
     </div>

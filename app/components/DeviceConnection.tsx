@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { FaBluetooth, FaBluetoothB, FaBatteryHalf, FaSync } from "react-icons/fa";
 import { tindeqService, DeviceInfo } from "../utils/bluetooth";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface DeviceConnectionProps {
   onConnectionChange: (connected: boolean) => void;
@@ -92,53 +94,49 @@ export default function DeviceConnection({ onConnectionChange }: DeviceConnectio
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold flex items-center">
-          {isConnected ? <FaBluetoothB className="mr-2 text-blue-500" /> : <FaBluetooth className="mr-2 text-gray-400" />}
-          Tindeq Progressor
-        </h2>
+    <Card className="w-full max-w-md mx-auto mb-6">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center text-xl">
+            {isConnected ? <FaBluetoothB className="mr-2 text-blue-500" /> : <FaBluetooth className="mr-2 text-gray-400" />}
+            Tindeq Progressor
+          </CardTitle>
 
-        {isConnected && deviceInfo.batteryVoltage && (
-          <div className="flex items-center text-sm">
-            <FaBatteryHalf className="mr-1" />
-            <span>{(deviceInfo.batteryVoltage / 1000).toFixed(2)}V</span>
-          </div>
-        )}
-      </div>
-
-      {deviceInfo.firmwareVersion && <div className="mb-4 text-sm text-gray-600 dark:text-gray-300">Firmware: {deviceInfo.firmwareVersion}</div>}
-
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md text-sm">
-          {error}
-          {!isConnected && (
-            <button onClick={handleManualReconnect} className="ml-2 text-blue-600 dark:text-blue-400 hover:underline flex items-center">
-              <FaSync className="mr-1" size={12} /> Retry
-            </button>
+          {isConnected && deviceInfo.batteryVoltage && (
+            <div className="flex items-center text-sm">
+              <FaBatteryHalf className="mr-1" />
+              <span>{(deviceInfo.batteryVoltage / 1000).toFixed(2)}V</span>
+            </div>
           )}
         </div>
-      )}
+        {deviceInfo.firmwareVersion && <div className="text-sm text-muted-foreground mt-1">Firmware: {deviceInfo.firmwareVersion}</div>}
+      </CardHeader>
 
-      <div className="flex justify-center">
-        {!isConnected ? (
-          <button
-            onClick={handleConnect}
-            disabled={isConnecting}
-            className={`px-4 py-2 rounded-full font-medium ${
-              isConnecting
-                ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600 text-white"
-            } transition-colors`}
-          >
-            {isConnecting ? "Connecting..." : "Connect Device"}
-          </button>
-        ) : (
-          <button onClick={handleDisconnect} className="px-4 py-2 rounded-full font-medium bg-red-500 hover:bg-red-600 text-white transition-colors">
-            Disconnect
-          </button>
+      <CardContent>
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md text-sm">
+            {error}
+            {!isConnected && (
+              <Button variant="link" size="sm" onClick={handleManualReconnect} className="ml-1 p-0 h-auto text-blue-600 dark:text-blue-400">
+                <FaSync size={12} />
+                <span>Retry</span>
+              </Button>
+            )}
+          </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+
+      <CardFooter className="flex justify-center pt-2">
+        {!isConnected ? (
+          <Button onClick={handleConnect} disabled={isConnecting} variant={isConnecting ? "outline" : "default"} className="rounded-full">
+            {isConnecting ? "Connecting..." : "Connect Device"}
+          </Button>
+        ) : (
+          <Button onClick={handleDisconnect} variant="destructive" className="rounded-full">
+            Disconnect
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 }

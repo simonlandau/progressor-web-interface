@@ -5,6 +5,8 @@ import { FaPlay, FaStop, FaRedo } from "react-icons/fa";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ChartData, ChartOptions } from "chart.js";
 import { tindeqService, MeasurementData } from "../utils/bluetooth";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -217,66 +219,56 @@ export default function ForceMeasurement({ isConnected }: ForceMeasurementProps)
   };
 
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
-        <div className="mb-4 md:mb-0">
-          <h2 className="text-xl font-semibold mb-2">Force Measurement</h2>
-          <div className="flex space-x-4">
-            <div>
-              <span className="text-sm text-gray-500 dark:text-gray-400">Current:</span>
-              <div className="text-3xl font-bold">{currentForce !== null ? `${currentForce.toFixed(1)} kg` : "-"}</div>
-            </div>
-            <div>
-              <span className="text-sm text-gray-500 dark:text-gray-400">Max:</span>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{maxForce !== null ? `${maxForce.toFixed(1)} kg` : "-"}</div>
+    <Card>
+      <CardHeader className="pb-0">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center">
+          <div className="mb-4 md:mb-0">
+            <CardTitle className="mb-2">Force Measurement</CardTitle>
+            <div className="flex space-x-4">
+              <div>
+                <span className="text-sm text-muted-foreground">Current:</span>
+                <div className="text-3xl font-bold">{currentForce !== null ? `${currentForce.toFixed(1)} kg` : "-"}</div>
+              </div>
+              <div>
+                <span className="text-sm text-muted-foreground">Max:</span>
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{maxForce !== null ? `${maxForce.toFixed(1)} kg` : "-"}</div>
+              </div>
             </div>
           </div>
+
+          <div className="flex space-x-2">
+            <Button onClick={handleTareScale} disabled={!isConnected || isMeasuring} variant="secondary" size="default">
+              <FaRedo />
+              <span>Tare</span>
+            </Button>
+
+            {!isMeasuring ? (
+              <Button
+                onClick={handleStartMeasurement}
+                disabled={!isConnected}
+                variant={!isConnected ? "outline" : "default"}
+                className="bg-green-500 hover:bg-green-600 disabled:bg-gray-300 dark:disabled:bg-gray-700"
+              >
+                <FaPlay />
+                <span>Start</span>
+              </Button>
+            ) : (
+              <Button onClick={handleStopMeasurement} variant="destructive">
+                <FaStop />
+                <span>Stop</span>
+              </Button>
+            )}
+          </div>
         </div>
+      </CardHeader>
 
-        <div className="flex space-x-2">
-          <button
-            onClick={handleTareScale}
-            disabled={!isConnected || isMeasuring}
-            className={`flex items-center px-4 py-2 rounded-full font-medium ${
-              !isConnected || isMeasuring
-                ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200"
-            } transition-colors`}
-          >
-            <FaRedo className="mr-2" />
-            Tare
-          </button>
+      <CardContent>
+        {error && <div className="mb-6 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md text-sm">{error}</div>}
 
-          {!isMeasuring ? (
-            <button
-              onClick={handleStartMeasurement}
-              disabled={!isConnected}
-              className={`flex items-center px-4 py-2 rounded-full font-medium ${
-                !isConnected
-                  ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                  : "bg-green-500 hover:bg-green-600 text-white"
-              } transition-colors`}
-            >
-              <FaPlay className="mr-2" />
-              Start
-            </button>
-          ) : (
-            <button
-              onClick={handleStopMeasurement}
-              className="flex items-center px-4 py-2 rounded-full font-medium bg-red-500 hover:bg-red-600 text-white transition-colors"
-            >
-              <FaStop className="mr-2" />
-              Stop
-            </button>
-          )}
+        <div className="h-64 md:h-80 mt-6">
+          <Line data={chartData} options={chartOptions} />
         </div>
-      </div>
-
-      {error && <div className="mb-6 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md text-sm">{error}</div>}
-
-      <div className="h-64 md:h-80">
-        <Line data={chartData} options={chartOptions} />
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
