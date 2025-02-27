@@ -2,10 +2,6 @@
 
 A web-based interface for the Tindeq Progressor, a portable digital hanging scale designed for climbers and athletes to measure finger strength.
 
-<!-- Replace the placeholder with an actual screenshot of your application -->
-
-![Tindeq Progressor Web Interface](public/screenshot.png)
-
 ## Features
 
 - Connect to Tindeq Progressor devices via Web Bluetooth API
@@ -29,7 +25,7 @@ A web-based interface for the Tindeq Progressor, a portable digital hanging scal
 ### Online Version
 
 The easiest way to use this application is through the hosted version at:
-[https://tindeq.example.com](https://tindeq.example.com)
+[https://progressor-web-interface.vercel.app/](https://progressor-web-interface.vercel.app/)
 
 ### Local Development
 
@@ -38,8 +34,8 @@ If you want to run the application locally or contribute to its development:
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/yourusername/tindeq-web-gui.git
-   cd tindeq-web-gui
+   git clone https://github.com/yourusername/progressor-web-interface.git
+   cd progressor-web-interface
    ```
 
 2. Install dependencies:
