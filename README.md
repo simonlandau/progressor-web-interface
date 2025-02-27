@@ -1,10 +1,10 @@
-# Tindeq Progressor Web GUI
+# Tindeq Progressor Web Interface
 
 A web-based interface for the Tindeq Progressor, a portable digital hanging scale designed for climbers and athletes to measure finger strength.
 
 <!-- Replace the placeholder with an actual screenshot of your application -->
 
-![Tindeq Progressor Web GUI](public/screenshot.png)
+![Tindeq Progressor Web Interface](public/screenshot.png)
 
 ## Features
 
@@ -128,9 +128,11 @@ Due to the reliance on the Web Bluetooth API, the application is compatible with
 
 ## Acknowledgments
 
-- [Tindeq](https://tindeq.com) for creating the Progressor device
+- [Tindeq](https://tindeq.com) for creating the Progressor device and providing an open standard for device communication
 - The Web Bluetooth API community
 
 ## Disclaimer
 
-This is an unofficial project and is not affiliated with or endorsed by Tindeq. Use at your own risk.
+This is an unofficial project and is not affiliated with or endorsed by Tindeq. The Tindeq Progressor device uses an open communication standard that allows third-party applications like this one to interface with it. While we strive to maintain compatibility with the device, this software is provided "as is" without warranty of any kind. Use at your own risk.
+
+The Tindeq name and Progressor are trademarks of Tindeq, and their use in this project is for identification purposes only.
