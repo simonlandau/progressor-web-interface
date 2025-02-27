@@ -4,7 +4,6 @@ import { useState } from "react";
 import * as React from "react";
 import DeviceConnection from "./components/DeviceConnection";
 import ForceMeasurement from "./components/ForceMeasurement";
-import { ModeToggle } from "@/components/ModeToggle";
 
 export default function Home() {
   const [isConnected, setIsConnected] = useState(false);
@@ -18,7 +17,6 @@ export default function Home() {
       <header className="flex flex-col items-center mb-8">
         <div className="flex items-center mb-4">
           <h1 className="text-2xl font-bold">Tindeq Progressor Web GUI</h1>
-          <ModeToggle className="absolute top-4 right-4" />
         </div>
         <p className="text-gray-600 dark:text-gray-300 text-center max-w-2xl">
           Connect to your Tindeq Progressor device via Bluetooth and measure force in real-time.
