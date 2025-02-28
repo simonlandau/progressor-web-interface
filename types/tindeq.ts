@@ -40,6 +40,7 @@ export interface TindeqState {
   measurements: MeasurementData[];
   startTime: number | null;
   lastDataTime: number | null;
+  elapsedTime: number;
 
   // Actions
   connect: () => Promise<void>;
@@ -52,6 +53,7 @@ export interface TindeqState {
   setIsManualDisconnect: (isManual: boolean) => void;
   handleConnectionChange: (connected: boolean) => void;
   handleManualReconnect: () => void;
+  getElapsedTime: () => string;
 }
 
 /**
