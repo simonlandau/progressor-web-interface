@@ -1,41 +1,7 @@
 import { create } from "zustand";
 import { useEffect } from "react";
-import { tindeqService, MeasurementData, DeviceInfo } from "../utils/bluetooth";
-
-/**
- * Interface for the Tindeq device state
- */
-interface TindeqState {
-  // Connection state
-  isConnected: boolean;
-  isConnecting: boolean;
-  error: string | null;
-  reconnectAttempts: number;
-  isManualDisconnect: boolean;
-
-  // Device information
-  deviceInfo: DeviceInfo;
-
-  // Measurement state
-  isMeasuring: boolean;
-  currentForce: number | null;
-  maxForce: number | null;
-  measurements: MeasurementData[];
-  startTime: number | null;
-  lastDataTime: number | null;
-
-  // Actions
-  connect: () => Promise<void>;
-  disconnect: () => Promise<void>;
-  startMeasurement: () => Promise<void>;
-  stopMeasurement: () => Promise<void>;
-  tareScale: () => Promise<void>;
-  resetMeasurements: () => void;
-  setReconnectAttempts: (attempts: number) => void;
-  setIsManualDisconnect: (isManual: boolean) => void;
-  handleConnectionChange: (connected: boolean) => void;
-  handleManualReconnect: () => void;
-}
+import { tindeqService } from "../utils/bluetooth";
+import { TindeqState } from "../../types/tindeq";
 
 /**
  * Zustand store for Tindeq device state

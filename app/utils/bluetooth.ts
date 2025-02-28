@@ -1,83 +1,21 @@
 // Tindeq Progressor Bluetooth Service
-// Add Web Bluetooth API types
-declare global {
-  interface Navigator {
-    bluetooth: {
-      requestDevice(options: { filters: Array<{ namePrefix: string }>; optionalServices: string[] }): Promise<BluetoothDevice>;
-    };
-  }
+import "../../types/bluetooth"; // Import Web Bluetooth API types
+import {
+  MeasurementData,
+  DeviceInfo,
+  ProgressorCommand,
+  ProgressorResponse,
+  PROGRESSOR_SERVICE_UUID,
+  DATA_CHAR_UUID,
+  CTRL_POINT_CHAR_UUID,
+} from "../../types/tindeq";
+import { CommandQueueItem } from "../../types/bluetooth";
 
-  interface BluetoothDevice {
-    gatt?: {
-      connect(): Promise<BluetoothRemoteGATTServer>;
-      connected: boolean;
-      disconnect(): void;
-    };
-    addEventListener(type: "gattserverdisconnected", listener: EventListenerOrEventListenerObject): void;
-    removeEventListener(type: "gattserverdisconnected", listener: EventListenerOrEventListenerObject): void;
-  }
+// Use enum values from imported types - only destructure what we need
+const { TARE_SCALE, START_WEIGHT_MEAS, STOP_WEIGHT_MEAS, ENTER_SLEEP, GET_APP_VERSION, GET_ERROR_INFORMATION, GET_BATTERY_VOLTAGE } =
+  ProgressorCommand;
 
-  interface BluetoothRemoteGATTServer {
-    getPrimaryService(service: string): Promise<BluetoothRemoteGATTService>;
-    connected: boolean;
-  }
-
-  interface BluetoothRemoteGATTService {
-    getCharacteristic(characteristic: string): Promise<BluetoothRemoteGATTCharacteristic>;
-  }
-
-  interface BluetoothRemoteGATTCharacteristic {
-    startNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
-    stopNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
-    writeValue(value: BufferSource): Promise<void>;
-    value: DataView;
-    addEventListener(type: "characteristicvaluechanged", listener: EventListenerOrEventListenerObject): void;
-    removeEventListener(type: "characteristicvaluechanged", listener: EventListenerOrEventListenerObject): void;
-  }
-}
-
-export const PROGRESSOR_SERVICE_UUID = "7e4e1701-1ea6-40c9-9dcc-13d34ffead57";
-export const DATA_CHAR_UUID = "7e4e1702-1ea6-40c9-9dcc-13d34ffead57";
-export const CTRL_POINT_CHAR_UUID = "7e4e1703-1ea6-40c9-9dcc-13d34ffead57";
-
-// Progressor Commands
-export const CMD_TARE_SCALE = 100;
-export const CMD_START_WEIGHT_MEAS = 101;
-export const CMD_STOP_WEIGHT_MEAS = 102;
-export const CMD_START_PEAK_RFD_MEAS = 103;
-export const CMD_START_PEAK_RFD_MEAS_SERIES = 104;
-export const CMD_ADD_CALIBRATION_POINT = 105;
-export const CMD_SAVE_CALIBRATION = 106;
-export const CMD_GET_APP_VERSION = 107;
-export const CMD_GET_ERROR_INFORMATION = 108;
-export const CMD_CLR_ERROR_INFORMATION = 109;
-export const CMD_ENTER_SLEEP = 110;
-export const CMD_GET_BATTERY_VOLTAGE = 111;
-
-// Progressor response codes
-export const RES_CMD_RESPONSE = 0;
-export const RES_WEIGHT_MEAS = 1;
-export const RES_RFD_PEAK = 2;
-export const RES_RFD_PEAK_SERIES = 3;
-export const RES_LOW_PWR_WARNING = 4;
-
-export interface MeasurementData {
-  weight: number;
-  timestamp: number;
-}
-
-export interface DeviceInfo {
-  firmwareVersion?: string;
-  batteryVoltage?: number;
-  errorInfo?: string;
-}
-
-// Interface for command queue items
-interface CommandQueueItem {
-  command: number;
-  resolve: (value: boolean) => void;
-  reject: (reason: Error) => void;
-}
+const { CMD_RESPONSE, WEIGHT_MEAS, LOW_PWR_WARNING } = ProgressorResponse;
 
 export class TindeqBluetoothService {
   private device: BluetoothDevice | null = null;
@@ -203,34 +141,34 @@ export class TindeqBluetoothService {
   }
 
   public async startMeasurement() {
-    return this.queueCommand(CMD_START_WEIGHT_MEAS);
+    return this.queueCommand(START_WEIGHT_MEAS);
   }
 
   public async stopMeasurement() {
-    return this.queueCommand(CMD_STOP_WEIGHT_MEAS);
+    return this.queueCommand(STOP_WEIGHT_MEAS);
   }
 
   public async tareScale() {
-    return this.queueCommand(CMD_TARE_SCALE);
+    return this.queueCommand(TARE_SCALE);
   }
 
   public async enterSleep() {
-    return this.queueCommand(CMD_ENTER_SLEEP);
+    return this.queueCommand(ENTER_SLEEP);
   }
 
   private async getDeviceInfo() {
     try {
       // Get firmware version
-      await this.queueCommand(CMD_GET_APP_VERSION);
+      await this.queueCommand(GET_APP_VERSION);
       // Wait a bit between commands to avoid overwhelming the device
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Get battery voltage
-      await this.queueCommand(CMD_GET_BATTERY_VOLTAGE);
+      await this.queueCommand(GET_BATTERY_VOLTAGE);
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Get error information
-      await this.queueCommand(CMD_GET_ERROR_INFORMATION);
+      await this.queueCommand(GET_ERROR_INFORMATION);
     } catch (error) {
       console.error("Error getting device info:", error);
       if (this.onErrorCallback) {
@@ -345,7 +283,7 @@ export class TindeqBluetoothService {
     const responseType = dataView.getUint8(0);
 
     try {
-      if (responseType === RES_WEIGHT_MEAS) {
+      if (responseType === WEIGHT_MEAS) {
         const payloadSize = dataView.getUint8(1);
 
         // Process each measurement in the notification
@@ -362,10 +300,10 @@ export class TindeqBluetoothService {
             }
           }
         }
-      } else if (responseType === RES_LOW_PWR_WARNING) {
+      } else if (responseType === LOW_PWR_WARNING) {
         console.warn("Received low battery warning");
-      } else if (responseType === RES_CMD_RESPONSE) {
-        if (this.currentCmdRequest === CMD_GET_APP_VERSION) {
+      } else if (responseType === CMD_RESPONSE) {
+        if (this.currentCmdRequest === GET_APP_VERSION) {
           // Extract firmware version string
           const decoder = new TextDecoder("utf-8");
           const firmwareVersion = decoder.decode(new Uint8Array(dataView.buffer.slice(2)));
@@ -374,7 +312,7 @@ export class TindeqBluetoothService {
           if (this.onDeviceInfoCallback) {
             this.onDeviceInfoCallback({ ...this.deviceInfo });
           }
-        } else if (this.currentCmdRequest === CMD_GET_BATTERY_VOLTAGE) {
+        } else if (this.currentCmdRequest === GET_BATTERY_VOLTAGE) {
           // Extract battery voltage (uint32, 4 bytes)
           const batteryVoltage = dataView.getUint32(2, true); // true for little-endian
           this.deviceInfo.batteryVoltage = batteryVoltage;
@@ -382,7 +320,7 @@ export class TindeqBluetoothService {
           if (this.onDeviceInfoCallback) {
             this.onDeviceInfoCallback({ ...this.deviceInfo });
           }
-        } else if (this.currentCmdRequest === CMD_GET_ERROR_INFORMATION) {
+        } else if (this.currentCmdRequest === GET_ERROR_INFORMATION) {
           // Extract error information string
           const decoder = new TextDecoder("utf-8");
           const errorInfo = decoder.decode(new Uint8Array(dataView.buffer.slice(2)));
@@ -391,9 +329,9 @@ export class TindeqBluetoothService {
           if (this.onDeviceInfoCallback) {
             this.onDeviceInfoCallback({ ...this.deviceInfo });
           }
-        } else if (this.currentCmdRequest === CMD_START_WEIGHT_MEAS) {
+        } else if (this.currentCmdRequest === START_WEIGHT_MEAS) {
           console.log("Measurement started successfully");
-        } else if (this.currentCmdRequest === CMD_STOP_WEIGHT_MEAS) {
+        } else if (this.currentCmdRequest === STOP_WEIGHT_MEAS) {
           console.log("Measurement stopped successfully");
         }
       }
@@ -407,3 +345,6 @@ export class TindeqBluetoothService {
 }
 
 export const tindeqService = new TindeqBluetoothService();
+
+// Re-export types for convenience
+export type { MeasurementData, DeviceInfo };
