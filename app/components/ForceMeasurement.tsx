@@ -12,6 +12,7 @@ import React, { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useTheme } from "next-themes";
 
 const CHECKPOINT_TOLERANCE = 1;
 const CHECKPOINT_TOLERANCE_WARNING = 3;
@@ -20,6 +21,7 @@ const CHECKPOINT_TOLERANCE_WARNING = 3;
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin);
 
 export default function ForceMeasurement() {
+  const { theme } = useTheme();
   const {
     isConnected,
     isMeasuring,
@@ -77,6 +79,15 @@ export default function ForceMeasurement() {
     return "rgba(239, 68, 68, 0.7)"; // Red when more than 10kg away
   };
 
+  // Get line color based on theme
+  const getLineColor = () => {
+    return theme === "dark" ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)";
+  };
+
+  const getLineBackgroundColor = () => {
+    return theme === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)";
+  };
+
   // Memoize expensive calculations
   const chartData = useMemo(
     () => ({
@@ -99,13 +110,13 @@ export default function ForceMeasurement() {
         {
           label: "Force (kg)",
           data: measurements.map((m) => m.weight),
-          borderColor: "rgb(255, 255, 255)",
-          backgroundColor: "rgba(255, 255, 255, 0.5)",
+          borderColor: getLineColor(),
+          backgroundColor: getLineBackgroundColor(),
           tension: 0.2,
         },
       ],
     }),
-    [measurements, startTime, elapsedTime]
+    [measurements, startTime, elapsedTime, theme]
   );
 
   const chartOptions = useMemo(() => {
@@ -171,7 +182,7 @@ export default function ForceMeasurement() {
     }
 
     return options;
-  }, [measurements, maxForce, checkpointValue, getCheckpointLineColor]);
+  }, [measurements, maxForce, checkpointValue, getCheckpointLineColor, theme]);
 
   // Calculate the y-axis maximum based on current measurements
   function calculateYAxisMax(measurements: MeasurementData[], maxForce: number | null): number | undefined {
