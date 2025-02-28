@@ -218,13 +218,37 @@ export default function ForceMeasurement() {
             </div>
           </div>
 
-          <div className="flex flex-col space-y-2 md:space-y-0 md:flex-row md:space-x-2">
+          <div className="flex flex-col space-y-2 items-end">
+            <div className="flex space-x-2">
+              <Button
+                onClick={resetMeasurements}
+                disabled={isMeasuring || (elapsedTime === 0 && maxForce === null)}
+                variant="secondary"
+                size="default"
+              >
+                <FaTrash className="mr-2" />
+                <span>Reset</span>
+              </Button>
+
+              {!isMeasuring ? (
+                <Button onClick={startMeasurement} disabled={!isConnected} variant={!isConnected ? "outline" : "default"}>
+                  <FaPlay className="mr-2" />
+                  <span>Start</span>
+                </Button>
+              ) : (
+                <Button onClick={stopMeasurement} variant="destructive">
+                  <FaStop className="mr-2" />
+                  <span>Stop</span>
+                </Button>
+              )}
+            </div>
+
             <div className="flex space-x-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="secondary" size="default">
-                    <FaFlag />
-                    <span className="ml-2">{checkpointValue !== null ? `Target: ${checkpointValue.toFixed(1)} kg` : "Set Target"}</span>
+                    <FaFlag className="mr-2" />
+                    <span>{checkpointValue !== null ? `Target ${checkpointValue.toFixed(1)} kg` : "Set Target"}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 p-3">
@@ -261,31 +285,9 @@ export default function ForceMeasurement() {
               </DropdownMenu>
 
               <Button onClick={tareScale} disabled={!isConnected || isMeasuring} variant="secondary" size="default">
-                <FaRedo />
+                <FaRedo className="mr-2" />
                 <span>Tare</span>
               </Button>
-
-              <Button
-                onClick={resetMeasurements}
-                disabled={isMeasuring || (elapsedTime === 0 && maxForce === null)}
-                variant="secondary"
-                size="default"
-              >
-                <FaTrash />
-                <span>Reset</span>
-              </Button>
-
-              {!isMeasuring ? (
-                <Button onClick={startMeasurement} disabled={!isConnected} variant={!isConnected ? "outline" : "default"} className="">
-                  <FaPlay />
-                  <span>Start</span>
-                </Button>
-              ) : (
-                <Button onClick={stopMeasurement} variant="destructive">
-                  <FaStop />
-                  <span>Stop</span>
-                </Button>
-              )}
             </div>
           </div>
         </div>
