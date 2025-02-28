@@ -13,6 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
+const CHECKPOINT_TOLERANCE = 2;
+const CHECKPOINT_TOLERANCE_WARNING = 5;
+
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin);
 
@@ -69,8 +72,8 @@ export default function ForceMeasurement() {
 
     const distance = Math.abs(currentForce - checkpointValue);
 
-    if (distance <= 2) return "rgba(34, 197, 94, 0.7)"; // Green when within 3kg
-    if (distance <= 5) return "rgba(234, 179, 8, 0.7)"; // Yellow when within 10kg
+    if (distance <= CHECKPOINT_TOLERANCE) return "rgba(34, 197, 94, 0.7)"; // Green when within 2kg
+    if (distance <= CHECKPOINT_TOLERANCE_WARNING) return "rgba(234, 179, 8, 0.7)"; // Yellow when within 5kg
     return "rgba(239, 68, 68, 0.7)"; // Red when more than 10kg away
   };
 
@@ -294,9 +297,9 @@ export default function ForceMeasurement() {
         {checkpointValue !== null && currentForce !== null && (
           <div
             className={`mb-4 mt-2 p-3 rounded-md text-sm flex items-center justify-between ${
-              Math.abs(currentForce - checkpointValue) <= 3
+              Math.abs(currentForce - checkpointValue) <= CHECKPOINT_TOLERANCE
                 ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
-                : Math.abs(currentForce - checkpointValue) <= 10
+                : Math.abs(currentForce - checkpointValue) <= CHECKPOINT_TOLERANCE_WARNING
                 ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"
                 : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
             }`}
@@ -306,9 +309,9 @@ export default function ForceMeasurement() {
               <strong>{Math.abs(currentForce - checkpointValue).toFixed(1)} kg</strong>
             </span>
             <span>
-              {Math.abs(currentForce - checkpointValue) <= 3
+              {Math.abs(currentForce - checkpointValue) <= CHECKPOINT_TOLERANCE
                 ? "On target! 🎯"
-                : Math.abs(currentForce - checkpointValue) <= 10
+                : Math.abs(currentForce - checkpointValue) <= CHECKPOINT_TOLERANCE_WARNING
                 ? "Getting closer! 👍"
                 : "Keep trying! 💪"}
             </span>
