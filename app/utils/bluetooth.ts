@@ -72,6 +72,13 @@ export interface DeviceInfo {
   errorInfo?: string;
 }
 
+// Interface for command queue items
+interface CommandQueueItem {
+  command: number;
+  resolve: (value: boolean) => void;
+  reject: (reason: Error) => void;
+}
+
 export class TindeqBluetoothService {
   private device: BluetoothDevice | null = null;
   private server: BluetoothRemoteGATTServer | null = null;
@@ -85,9 +92,14 @@ export class TindeqBluetoothService {
   private onConnectionChangeCallback: ((connected: boolean) => void) | null = null;
   private onErrorCallback: ((error: Error) => void) | null = null;
 
+  // Command queue to prevent "GATT operation already in progress" errors
+  private commandQueue: CommandQueueItem[] = [];
+  private isProcessingQueue = false;
+
   constructor() {
     this.handleDisconnection = this.handleDisconnection.bind(this);
     this.handleNotification = this.handleNotification.bind(this);
+    this.processCommandQueue = this.processCommandQueue.bind(this);
   }
 
   public setOnMeasurementCallback(callback: (data: MeasurementData) => void) {
@@ -154,6 +166,10 @@ export class TindeqBluetoothService {
 
   public async disconnect() {
     try {
+      // Clear the command queue
+      this.commandQueue = [];
+      this.isProcessingQueue = false;
+
       if (this.dataCharacteristic) {
         await this.dataCharacteristic.stopNotifications();
         this.dataCharacteristic.removeEventListener("characteristicvaluechanged", this.handleNotification);
@@ -187,72 +203,86 @@ export class TindeqBluetoothService {
   }
 
   public async startMeasurement() {
-    try {
-      const result = await this.sendCommand(CMD_START_WEIGHT_MEAS);
-      // Add a small delay to ensure the command is processed
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      return result;
-    } catch (error) {
-      console.error("Error starting measurement:", error);
-      if (this.onErrorCallback) {
-        this.onErrorCallback(error instanceof Error ? error : new Error(String(error)));
-      }
-      return false;
-    }
+    return this.queueCommand(CMD_START_WEIGHT_MEAS);
   }
 
   public async stopMeasurement() {
-    try {
-      const result = await this.sendCommand(CMD_STOP_WEIGHT_MEAS);
-      // Add a small delay to ensure the command is processed
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      return result;
-    } catch (error) {
-      console.error("Error stopping measurement:", error);
-      if (this.onErrorCallback) {
-        this.onErrorCallback(error instanceof Error ? error : new Error(String(error)));
-      }
-      return false;
-    }
+    return this.queueCommand(CMD_STOP_WEIGHT_MEAS);
   }
 
   public async tareScale() {
-    try {
-      const result = await this.sendCommand(CMD_TARE_SCALE);
-      // Add a small delay to ensure the command is processed
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      return result;
-    } catch (error) {
-      console.error("Error taring scale:", error);
-      if (this.onErrorCallback) {
-        this.onErrorCallback(error instanceof Error ? error : new Error(String(error)));
-      }
-      return false;
-    }
+    return this.queueCommand(CMD_TARE_SCALE);
   }
 
   public async enterSleep() {
-    return this.sendCommand(CMD_ENTER_SLEEP);
+    return this.queueCommand(CMD_ENTER_SLEEP);
   }
 
   private async getDeviceInfo() {
     try {
       // Get firmware version
-      await this.sendCommand(CMD_GET_APP_VERSION);
+      await this.queueCommand(CMD_GET_APP_VERSION);
       // Wait a bit between commands to avoid overwhelming the device
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Get battery voltage
-      await this.sendCommand(CMD_GET_BATTERY_VOLTAGE);
+      await this.queueCommand(CMD_GET_BATTERY_VOLTAGE);
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Get error information
-      await this.sendCommand(CMD_GET_ERROR_INFORMATION);
+      await this.queueCommand(CMD_GET_ERROR_INFORMATION);
     } catch (error) {
       console.error("Error getting device info:", error);
       if (this.onErrorCallback) {
         this.onErrorCallback(error instanceof Error ? error : new Error(String(error)));
       }
+    }
+  }
+
+  // Add command to queue and process it when possible
+  private queueCommand(command: number): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+      // Add command to queue
+      this.commandQueue.push({ command, resolve, reject });
+
+      // Start processing queue if not already processing
+      if (!this.isProcessingQueue) {
+        this.processCommandQueue();
+      }
+    });
+  }
+
+  // Process commands in queue sequentially
+  private async processCommandQueue() {
+    if (this.isProcessingQueue || this.commandQueue.length === 0) {
+      return;
+    }
+
+    this.isProcessingQueue = true;
+
+    try {
+      while (this.commandQueue.length > 0) {
+        const item = this.commandQueue[0];
+
+        try {
+          const result = await this.sendCommand(item.command);
+          item.resolve(result);
+        } catch (error) {
+          item.reject(error instanceof Error ? error : new Error(String(error)));
+        }
+
+        // Remove the processed command
+        this.commandQueue.shift();
+
+        // Add a small delay between commands
+        if (this.commandQueue.length > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+      }
+    } catch (error) {
+      console.error("Error processing command queue:", error);
+    } finally {
+      this.isProcessingQueue = false;
     }
   }
 
@@ -294,6 +324,10 @@ export class TindeqBluetoothService {
     this.service = null;
     this.dataCharacteristic = null;
     this.controlCharacteristic = null;
+
+    // Clear the command queue
+    this.commandQueue = [];
+    this.isProcessingQueue = false;
 
     if (this.onConnectionChangeCallback) {
       this.onConnectionChangeCallback(false);

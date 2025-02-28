@@ -1,31 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { FaPlay, FaStop, FaRedo } from "react-icons/fa";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ChartData, ChartOptions } from "chart.js";
-import { tindeqService, MeasurementData } from "../utils/bluetooth";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useTindeq } from "../hooks/useTindeq";
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-interface ForceMeasurementProps {
-  isConnected: boolean;
-}
-
-export default function ForceMeasurement({ isConnected }: ForceMeasurementProps) {
-  const [isMeasuring, setIsMeasuring] = useState(false);
-  const [currentForce, setCurrentForce] = useState<number | null>(null);
-  const [maxForce, setMaxForce] = useState<number | null>(null);
-  const [measurements, setMeasurements] = useState<MeasurementData[]>([]);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [lastDataTime, setLastDataTime] = useState<number | null>(null);
-
-  // Limit the number of data points to display on the chart
-  const MAX_DATA_POINTS = 100;
+export default function ForceMeasurement() {
+  const { isConnected, isMeasuring, currentForce, maxForce, measurements, startTime, error, startMeasurement, stopMeasurement, tareScale } =
+    useTindeq();
 
   // Chart configuration
   const chartData: ChartData<"line"> = {
@@ -73,151 +60,6 @@ export default function ForceMeasurement({ isConnected }: ForceMeasurementProps)
     },
   };
 
-  // Watchdog timer to detect when measurements stop coming in
-  useEffect(() => {
-    if (!isMeasuring) return;
-
-    // Set up a timer to check if we're still receiving data
-    const watchdogTimer = setInterval(() => {
-      if (lastDataTime === null) return;
-
-      const now = Date.now();
-      const timeSinceLastData = now - lastDataTime;
-
-      // If we haven't received data for more than 3 seconds, try to restart measurement
-      if (timeSinceLastData > 3000) {
-        console.warn(`No data received for ${timeSinceLastData}ms, restarting measurement`);
-
-        // Try to stop and restart measurement
-        tindeqService
-          .stopMeasurement()
-          .then(() => new Promise((resolve) => setTimeout(resolve, 500)))
-          .then(() => tindeqService.startMeasurement())
-          .then(() => {
-            setLastDataTime(Date.now());
-          })
-          .catch((err) => {
-            console.error("Failed to restart measurement:", err);
-            setError("Data stream interrupted. Please try stopping and starting again.");
-            setIsMeasuring(false);
-          });
-      }
-    }, 1000);
-
-    return () => {
-      clearInterval(watchdogTimer);
-    };
-  }, [isMeasuring, lastDataTime]);
-
-  useEffect(() => {
-    // Setup measurement callback when connected
-    const handleMeasurement = (data: MeasurementData) => {
-      setCurrentForce(data.weight);
-      setLastDataTime(Date.now());
-
-      if (maxForce === null || data.weight > maxForce) {
-        setMaxForce(data.weight);
-      }
-
-      if (isMeasuring) {
-        setMeasurements((prev) => {
-          // Initialize start time if this is the first measurement
-          if (startTime === null) {
-            setStartTime(data.timestamp);
-            return [data];
-          }
-
-          // Add new measurement and limit array size
-          const newMeasurements = [...prev, data];
-          if (newMeasurements.length > MAX_DATA_POINTS) {
-            return newMeasurements.slice(-MAX_DATA_POINTS);
-          }
-          return newMeasurements;
-        });
-      }
-    };
-
-    if (isConnected) {
-      tindeqService.setOnMeasurementCallback(handleMeasurement);
-    }
-
-    return () => {
-      // Clean up
-      tindeqService.setOnMeasurementCallback(() => {});
-    };
-  }, [isConnected, isMeasuring, maxForce, startTime]);
-
-  // Separate effect for cleanup when component unmounts or measurement stops
-  useEffect(() => {
-    return () => {
-      if (isMeasuring) {
-        tindeqService.stopMeasurement().catch(console.error);
-      }
-    };
-  }, [isMeasuring]);
-
-  const handleStartMeasurement = async () => {
-    setError(null);
-
-    try {
-      if (!isConnected) {
-        throw new Error("Device not connected");
-      }
-
-      // Reset measurements when starting a new session
-      setMeasurements([]);
-      setStartTime(null);
-      setMaxForce(null);
-
-      console.log("Starting measurement...");
-      const success = await tindeqService.startMeasurement();
-      if (!success) {
-        throw new Error("Failed to start measurement");
-      }
-
-      setIsMeasuring(true);
-      console.log("Measurement started");
-    } catch (error) {
-      console.error("Start measurement error:", error);
-      setError(error instanceof Error ? error.message : "Failed to start measurement");
-    }
-  };
-
-  const handleStopMeasurement = async () => {
-    setError(null);
-
-    try {
-      console.log("Stopping measurement...");
-      const success = await tindeqService.stopMeasurement();
-      if (!success) {
-        throw new Error("Failed to stop measurement");
-      }
-
-      setIsMeasuring(false);
-      console.log("Measurement stopped");
-    } catch (error) {
-      console.error("Stop measurement error:", error);
-      setError(error instanceof Error ? error.message : "Failed to stop measurement");
-    }
-  };
-
-  const handleTareScale = async () => {
-    setError(null);
-
-    try {
-      if (!isConnected) {
-        throw new Error("Device not connected");
-      }
-
-      const success = await tindeqService.tareScale();
-      if (!success) {
-        throw new Error("Failed to tare scale");
-      }
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to tare scale");
-    }
-  };
-
   return (
     <Card>
       <CardHeader className="pb-0">
@@ -237,14 +79,14 @@ export default function ForceMeasurement({ isConnected }: ForceMeasurementProps)
           </div>
 
           <div className="flex space-x-2">
-            <Button onClick={handleTareScale} disabled={!isConnected || isMeasuring} variant="secondary" size="default">
+            <Button onClick={tareScale} disabled={!isConnected || isMeasuring} variant="secondary" size="default">
               <FaRedo />
               <span>Tare</span>
             </Button>
 
             {!isMeasuring ? (
               <Button
-                onClick={handleStartMeasurement}
+                onClick={startMeasurement}
                 disabled={!isConnected}
                 variant={!isConnected ? "outline" : "default"}
                 className="bg-green-500 hover:bg-green-600 disabled:bg-gray-300 dark:disabled:bg-gray-700"
@@ -253,7 +95,7 @@ export default function ForceMeasurement({ isConnected }: ForceMeasurementProps)
                 <span>Start</span>
               </Button>
             ) : (
-              <Button onClick={handleStopMeasurement} variant="destructive">
+              <Button onClick={stopMeasurement} variant="destructive">
                 <FaStop />
                 <span>Stop</span>
               </Button>

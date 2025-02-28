@@ -1,16 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import * as React from "react";
 import DeviceConnection from "./components/DeviceConnection";
 import ForceMeasurement from "./components/ForceMeasurement";
+import { useTindeq } from "./hooks/useTindeq";
 
 export default function Home() {
-  const [isConnected, setIsConnected] = useState(false);
-
-  const handleConnectionChange = (connected: boolean) => {
-    setIsConnected(connected);
-  };
+  useTindeq();
 
   return (
     <div className="min-h-screen px-8 mt-16 pb-20 gap-8 sm:px-10 font-[family-name:var(--font-geist-sans)]">
@@ -25,12 +21,12 @@ export default function Home() {
           </p>
         </div>
         <div className="w-1/3">
-          <DeviceConnection onConnectionChange={handleConnectionChange} />
+          <DeviceConnection />
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto flex flex-col gap-8">
-        <ForceMeasurement isConnected={isConnected} />
+        <ForceMeasurement />
       </main>
 
       <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
