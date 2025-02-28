@@ -273,12 +273,7 @@ export default function ForceMeasurement() {
               </Button>
 
               {!isMeasuring ? (
-                <Button
-                  onClick={startMeasurement}
-                  disabled={!isConnected}
-                  variant={!isConnected ? "outline" : "default"}
-                  className="bg-green-500 hover:bg-green-600 disabled:bg-gray-300 dark:disabled:bg-gray-700"
-                >
+                <Button onClick={startMeasurement} disabled={!isConnected} variant={!isConnected ? "outline" : "default"} className="">
                   <FaPlay />
                   <span>Start</span>
                 </Button>
