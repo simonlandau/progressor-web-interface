@@ -2,11 +2,12 @@
 
 import { FaPlay, FaStop, FaRedo, FaTrash } from "react-icons/fa";
 import { Line } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ChartData, ChartOptions } from "chart.js";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useTindeq } from "../hooks/useTindeq";
 import { MeasurementData } from "../../types/tindeq";
+import React, { useMemo } from "react";
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -31,67 +32,73 @@ export default function ForceMeasurement() {
   // Format the time display - show elapsed time even when not measuring
   const displayTime = isMeasuring ? `${getElapsedTime()} s` : elapsedTime > 0 ? `${elapsedTime.toFixed(1)} s` : "-";
 
-  // Chart configuration
-  const chartData: ChartData<"line"> = {
-    labels: measurements.map((m, i, arr) => {
-      // If we have a startTime, use it as the reference point
-      if (startTime) {
-        return ((m.timestamp - startTime) / 1000000).toFixed(1);
-      }
-      // If no startTime but we have measurements, use the first measurement as reference
-      else if (arr.length > 0) {
-        const firstMeasurement = arr[0];
-        const relativeTime = (m.timestamp - firstMeasurement.timestamp) / 1000000;
-        // Add the elapsed time that was accumulated before this measurement session
-        return (relativeTime + (elapsedTime - relativeTime)).toFixed(1);
-      }
-      // Fallback
-      return "0.0";
+  // Memoize expensive calculations
+  const chartData = useMemo(
+    () => ({
+      labels: measurements.map((m, i, arr) => {
+        // If we have a startTime, use it as the reference point
+        if (startTime) {
+          return ((m.timestamp - startTime) / 1000000).toFixed(1);
+        }
+        // If no startTime but we have measurements, use the first measurement as reference
+        else if (arr.length > 0) {
+          const firstMeasurement = arr[0];
+          const relativeTime = (m.timestamp - firstMeasurement.timestamp) / 1000000;
+          // Add the elapsed time that was accumulated before this measurement session
+          return (relativeTime + (elapsedTime - relativeTime)).toFixed(1);
+        }
+        // Fallback
+        return "0.0";
+      }),
+      datasets: [
+        {
+          label: "Force (kg)",
+          data: measurements.map((m) => m.weight),
+          borderColor: "rgb(59, 130, 246)",
+          backgroundColor: "rgba(59, 130, 246, 0.5)",
+          tension: 0.2,
+        },
+      ],
     }),
-    datasets: [
-      {
-        label: "Force (kg)",
-        data: measurements.map((m) => m.weight),
-        borderColor: "rgb(59, 130, 246)",
-        backgroundColor: "rgba(59, 130, 246, 0.5)",
-        tension: 0.2,
-      },
-    ],
-  };
+    [measurements, startTime, elapsedTime]
+  );
 
-  const chartOptions: ChartOptions<"line"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: {
-      duration: 0, // Disable animation for better performance with live data
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        suggestedMax: 20, // Default maximum of 20kg
-        max: calculateYAxisMax(measurements, maxForce),
-        title: {
-          display: true,
-          text: "Force (kg)",
+  const chartOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {
+        duration: 0, // Disable animation for better performance with live data
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          suggestedMax: 20, // Default maximum of 20kg
+          max: calculateYAxisMax(measurements, maxForce),
+          title: {
+            display: true,
+            text: "Force (kg)",
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: "Time (s)",
+          },
         },
       },
-      x: {
+      plugins: {
+        legend: {
+          display: false,
+        },
         title: {
           display: true,
-          text: "Time (s)",
+          text: "Force Measurement",
         },
       },
-    },
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: true,
-        text: "Force Measurement",
-      },
-    },
-  };
+    }),
+    [measurements, maxForce]
+  );
 
   // Calculate the y-axis maximum based on current measurements
   function calculateYAxisMax(measurements: MeasurementData[], maxForce: number | null): number | undefined {
