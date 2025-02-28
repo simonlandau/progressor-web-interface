@@ -154,7 +154,7 @@ export default function ForceMeasurement() {
             borderDash: [5, 5],
             label: {
               display: true,
-              content: `Target: ${checkpointValue} kg`,
+              content: `Target ${checkpointValue} kg`,
               position: "end",
               backgroundColor: getCheckpointLineColor(),
               color: "white",
@@ -307,7 +307,7 @@ export default function ForceMeasurement() {
             }`}
           >
             <span>
-              Target: <strong>{checkpointValue.toFixed(1)} kg</strong> | Distance:{" "}
+              Target <strong>{checkpointValue.toFixed(1)} kg</strong> | Distance{" "}
               <strong>{Math.abs(currentForce - checkpointValue).toFixed(1)} kg</strong>
             </span>
             <span>
