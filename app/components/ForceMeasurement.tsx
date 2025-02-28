@@ -13,8 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-const CHECKPOINT_TOLERANCE = 2;
-const CHECKPOINT_TOLERANCE_WARNING = 5;
+const CHECKPOINT_TOLERANCE = 1;
+const CHECKPOINT_TOLERANCE_WARNING = 3;
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin);

@@ -6,11 +6,13 @@ A web-based interface for the Tindeq Progressor, a portable digital hanging scal
 
 - Connect to Tindeq Progressor devices via Web Bluetooth API
 - Real-time force measurement display
-- Visual graph of force over time
+- Visual graph of force over time with target line
 - Maximum force tracking
+- Target setting with visual feedback
 - Tare functionality
 - Battery level monitoring
 - Automatic reconnection handling
+- Dark/light mode support
 
 ## Requirements
 
@@ -73,6 +75,28 @@ The application is built with Next.js and React, using TypeScript for type safet
 - **ForceMeasurement**: Displays and records force measurements in real-time, showing current and maximum force values along with a visual graph
 - **TindeqBluetoothService**: Core utility that manages the Bluetooth communication protocol with the device
 
+### UI Framework
+
+The application uses:
+
+- **shadcn/ui**: A collection of reusable components built with Radix UI and Tailwind CSS
+- **Tailwind CSS**: For styling and responsive design
+- **react-icons**: For icon components
+- **Chart.js**: For data visualization
+- **Zustand**: For state management
+
+### Target Feature
+
+The application includes a target setting feature that allows users to:
+
+- Set a specific force target in kilograms
+- See a visual target line on the force graph
+- Get real-time feedback on how close they are to their target
+- Visual indicators change color based on proximity to target:
+  - Green: Within 1kg of target (on target)
+  - Yellow: Within 3kg of target (getting closer)
+  - Red: More than 3kg from target (keep trying)
+
 ### Bluetooth Communication
 
 The Tindeq Progressor uses a custom Bluetooth GATT service with the following characteristics:
@@ -103,6 +127,8 @@ Force measurements are visualized using Chart.js, which provides:
 - Real-time updating line chart
 - Time-based x-axis (seconds)
 - Force-based y-axis (kilograms)
+- Target line with color feedback
+- Automatic y-axis scaling based on measurements and target
 
 The application limits the displayed data points to maintain performance while providing a smooth visual representation of the force applied over time.
 
@@ -126,6 +152,7 @@ Due to the reliance on the Web Bluetooth API, the application is compatible with
 
 - [Tindeq](https://tindeq.com) for creating the Progressor device and providing an open standard for device communication
 - The Web Bluetooth API community
+- [shadcn/ui](https://ui.shadcn.com/) for the beautiful UI components
 
 ## Disclaimer
 
