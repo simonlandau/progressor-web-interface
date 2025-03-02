@@ -2,34 +2,14 @@ import { useMemo } from "react";
 import { useTheme } from "next-themes";
 import { MeasurementData } from "../../types/tindeq";
 import { ChartData, ChartOptions } from "chart.js";
-
-// Constants
-const CHECKPOINT_TOLERANCE = 1;
-const CHECKPOINT_TOLERANCE_WARNING = 3;
+import { useTarget } from "./useTarget";
 
 /**
  * Hook for managing force measurement chart data and options
  */
-export function useForceChart(
-  measurements: MeasurementData[],
-  startTime: number | null,
-  elapsedTime: number,
-  maxForce: number | null,
-  checkpointValue: number | null,
-  currentForce: number | null
-) {
+export function useForceChart(measurements: MeasurementData[], startTime: number | null, elapsedTime: number, maxForce: number | null) {
   const { resolvedTheme } = useTheme();
-
-  // Get checkpoint line color based on proximity to current force
-  const getCheckpointLineColor = useMemo(() => {
-    if (checkpointValue === null || currentForce === null) return "rgba(200, 200, 200, 0.5)";
-
-    const distance = Math.abs(currentForce - checkpointValue);
-
-    if (distance <= CHECKPOINT_TOLERANCE) return "rgba(34, 197, 94, 0.7)"; // Green when within tolerance
-    if (distance <= CHECKPOINT_TOLERANCE_WARNING) return "rgba(234, 179, 8, 0.7)"; // Yellow when within warning
-    return "rgba(239, 68, 68, 0.7)"; // Red when outside warning
-  }, [checkpointValue, currentForce]);
+  const { targetValue, getTargetLineColor } = useTarget();
 
   // Get line color based on theme
   const getLineColor = useMemo(() => {
@@ -50,18 +30,18 @@ export function useForceChart(
     // Get the highest force value from measurements
     const highestMeasurement = Math.max(...measurements.map((m) => m.weight));
 
-    // If we have a checkpoint, make sure it's visible
-    const checkpointAdjustment = checkpointValue ? Math.max(0, checkpointValue - highestMeasurement) : 0;
+    // If we have a target, make sure it's visible
+    const targetAdjustment = targetValue ? Math.max(0, targetValue - highestMeasurement) : 0;
 
     // If we're approaching the current max (within 80%), increase the max by 25%
-    if (highestMeasurement > 16 || checkpointAdjustment > 0) {
+    if (highestMeasurement > 16 || targetAdjustment > 0) {
       // 80% of default 20kg
-      const newMax = Math.ceil((highestMeasurement + checkpointAdjustment) * 1.25);
+      const newMax = Math.ceil((highestMeasurement + targetAdjustment) * 1.25);
       return Math.max(newMax, 20); // Never go below 20kg
     }
 
     return 20; // Default to 20kg
-  }, [measurements, maxForce, checkpointValue]);
+  }, [measurements, maxForce, targetValue]);
 
   // Memoize chart data
   const chartData: ChartData<"line"> = useMemo(
@@ -88,6 +68,9 @@ export function useForceChart(
           borderColor: getLineColor,
           backgroundColor: getLineBackgroundColor,
           tension: 0.2,
+          pointRadius: 0, // Hide the points to make it a solid line
+          borderWidth: 2, // Ensure the line has a good thickness
+          fill: false, // Don't fill the area under the line
         },
       ],
     }),
@@ -101,6 +84,15 @@ export function useForceChart(
       maintainAspectRatio: false,
       animation: {
         duration: 0, // Disable animation for better performance with live data
+      },
+      elements: {
+        point: {
+          radius: 0, // Ensure points are hidden globally
+        },
+        line: {
+          tension: 0.2, // Smooth curve
+          borderWidth: 2, // Consistent line thickness
+        },
       },
       scales: {
         y: {
@@ -129,23 +121,22 @@ export function useForceChart(
       },
     };
 
-    // Only add annotation if we have a checkpoint value
-    if (checkpointValue !== null) {
-      // @ts-expect-error - Type issues with chartjs-plugin-annotation
+    // Only add annotation if we have a target value
+    if (targetValue !== null && options.plugins) {
       options.plugins.annotation = {
         annotations: {
-          checkpointLine: {
+          targetLine: {
             type: "line" as const,
-            yMin: checkpointValue,
-            yMax: checkpointValue,
-            borderColor: getCheckpointLineColor,
+            yMin: targetValue,
+            yMax: targetValue,
+            borderColor: getTargetLineColor,
             borderWidth: 2,
             borderDash: [5, 5],
             label: {
               display: true,
-              content: `Target ${checkpointValue} kg`,
+              content: `Target ${targetValue} kg`,
               position: "end",
-              backgroundColor: getCheckpointLineColor,
+              backgroundColor: getTargetLineColor,
               color: "white",
               font: {
                 weight: "bold",
@@ -157,45 +148,10 @@ export function useForceChart(
     }
 
     return options;
-  }, [calculateYAxisMax, checkpointValue, getCheckpointLineColor]);
-
-  // Get checkpoint status information
-  const checkpointStatus = useMemo(() => {
-    if (checkpointValue === null || currentForce === null) return null;
-
-    const distance = Math.abs(currentForce - checkpointValue);
-    let status = {
-      distance,
-      isOnTarget: false,
-      isClose: false,
-      message: "Keep trying! 💪",
-      className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
-    };
-
-    if (distance <= CHECKPOINT_TOLERANCE) {
-      status = {
-        ...status,
-        isOnTarget: true,
-        message: "On target! 🎯",
-        className: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
-      };
-    } else if (distance <= CHECKPOINT_TOLERANCE_WARNING) {
-      status = {
-        ...status,
-        isClose: true,
-        message: "Getting closer! 👍",
-        className: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300",
-      };
-    }
-
-    return status;
-  }, [checkpointValue, currentForce]);
+  }, [calculateYAxisMax, targetValue, getTargetLineColor]);
 
   return {
     chartData,
     chartOptions,
-    checkpointStatus,
-    CHECKPOINT_TOLERANCE,
-    CHECKPOINT_TOLERANCE_WARNING,
   };
 }

@@ -42,9 +42,9 @@ export interface TindeqState {
   lastDataTime: number | null;
   elapsedTime: number;
 
-  // Checkpoint state
-  checkpointValue: number | null;
-  setCheckpointValue: (value: number | null) => void;
+  // Target state
+  targetValue: number | null;
+  setTargetValue: (value: number | null) => void;
 
   // Actions
   connect: () => Promise<void>;

@@ -25,8 +25,8 @@ const useTindeqStore = create<TindeqState>((set, get) => ({
   lastDataTime: null,
   elapsedTime: 0,
 
-  // Checkpoint state
-  checkpointValue: null,
+  // Target state
+  targetValue: null,
 
   // Actions
   connect: async () => {
@@ -188,9 +188,9 @@ const useTindeqStore = create<TindeqState>((set, get) => ({
     state.connect();
   },
 
-  // Set checkpoint value
-  setCheckpointValue: (value: number | null) => {
-    set({ checkpointValue: value });
+  // Set target value
+  setTargetValue: (value: number | null) => {
+    set({ targetValue: value });
   },
 
   // Get elapsed time in seconds
