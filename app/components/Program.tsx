@@ -17,7 +17,6 @@ import { Progress } from "@/components/ui/progress";
 
 export default function Program() {
   const {
-    programs,
     activeProgram,
     isRunning,
     currentBlockIndex,
@@ -25,13 +24,11 @@ export default function Program() {
     addBlock,
     updateBlock,
     deleteBlock,
-    setActiveProgram,
     startActiveProgram,
     stopActiveProgram,
     resetActiveProgram,
     formatTime,
     getCurrentBlock,
-    createCustomProgram,
     loadPredefinedProgram,
   } = useProgram();
 
@@ -52,13 +49,13 @@ export default function Program() {
     targetForce: "",
   });
 
-  // Initialize with a custom program if none exists
+  // Initialize with the custom program by default
   useEffect(() => {
-    if (programs.length === 0) {
-      const customProgram = createCustomProgram();
-      setActiveProgram(customProgram);
+    // Only load the custom program if no program is active or if it's the first render
+    if (!activeProgram) {
+      loadPredefinedProgram("CUSTOM");
     }
-  }, [programs, createCustomProgram, setActiveProgram]);
+  }, [loadPredefinedProgram, activeProgram]);
 
   // Handle program selection
   const handleProgramSelect = (value: string) => {
@@ -182,7 +179,7 @@ export default function Program() {
                 <div className="p-2">
                   <span className="text-sm text-muted-foreground">Current Block</span>
                   <div className="text-xl font-bold flex items-center">
-                    {currentBlock.type === "pull" ? <FaDumbbell className="mr-2 text-blue-500" /> : <FaClock className="mr-2 text-green-500" />}
+                    {currentBlock.type === "pull" ? <FaDumbbell className="mr-2 text-500" /> : <FaClock className="mr-2 text-500" />}
                     {currentBlock.name}
                     {currentBlock.type === "pull" && currentBlock.targetForce && (
                       <span className="ml-2 text-sm font-normal">({currentBlock.targetForce} kg)</span>
@@ -225,7 +222,7 @@ export default function Program() {
                     activeProgram.blocks.length === 0 ||
                     (currentBlockIndex === 0 && remainingTime === (activeProgram?.blocks[0]?.duration || 0))
                   }
-                  variant="outline"
+                  variant="secondary"
                 >
                   <FaRedo className="mr-2" />
                   <span>Reset</span>
@@ -387,7 +384,7 @@ export default function Program() {
                   <div className="flex items-center justify-center h-8 w-8 rounded-full mr-3 text-white bg-gray-700">{index + 1}</div>
                   <div>
                     <div className="flex items-center">
-                      {block.type === "pull" ? <FaDumbbell className="mr-2 text-blue-500" /> : <FaClock className="mr-2 text-green-500" />}
+                      {block.type === "pull" ? <FaDumbbell className="mr-2" /> : <FaClock className="mr-2" />}
                       <span className="font-medium">{block.name}</span>
                     </div>
                     <div className="text-sm text-muted-foreground">
