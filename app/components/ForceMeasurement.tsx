@@ -6,7 +6,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import annotationPlugin from "chartjs-plugin-annotation";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useTindeq } from "../hooks/useTindeq";
+import useTindeqStore from "../store/tindeqStore";
 import { useForceChart } from "../hooks/useForceChart";
 import { useTarget } from "../hooks/useTarget";
 import React from "react";
@@ -31,7 +31,7 @@ export default function ForceMeasurement() {
     stopMeasurement,
     resetMeasurements,
     getElapsedTime,
-  } = useTindeq();
+  } = useTindeqStore();
 
   const { targetValue, targetInput, targetStatus, handleTargetChange, handleTargetSubmit, clearTarget } = useTarget();
 
