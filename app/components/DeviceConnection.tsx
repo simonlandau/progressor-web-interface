@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useTindeq } from "../hooks/useTindeq";
 
 export default function DeviceConnection() {
-  const { isConnected, isConnecting, deviceInfo, error, connect, disconnect, handleManualReconnect } = useTindeq();
+  const { isConnected, isConnecting, deviceInfo, error, connect, disconnect, handleManualReconnect, tareScale, isMeasuring } = useTindeq();
 
   return (
-    <Card className="w-full max-w-md mx-auto mb-6">
+    <Card className="w-full max-w-md mx-auto mb-6 min-h-[160px]">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center text-xl">
@@ -33,7 +33,7 @@ export default function DeviceConnection() {
             {error}
             {!isConnected && (
               <Button variant="link" size="sm" onClick={handleManualReconnect} className="ml-1 p-0 h-auto text-blue-600 dark:text-blue-400">
-                <FaSync size={12} />
+                <FaSync size={12} className="mr-1" />
                 <span>Retry</span>
               </Button>
             )}
@@ -41,15 +41,20 @@ export default function DeviceConnection() {
         )}
       </CardContent>
 
-      <CardFooter className="flex justify-center pt-2">
+      <CardFooter className="flex justify-center gap-3 pt-2">
         {!isConnected ? (
           <Button onClick={connect} disabled={isConnecting} variant={isConnecting ? "outline" : "default"} className="rounded-full">
             {isConnecting ? "Connecting..." : "Connect Device"}
           </Button>
         ) : (
-          <Button onClick={disconnect} variant="destructive" className="rounded-full">
-            Disconnect
-          </Button>
+          <>
+            <Button onClick={tareScale} disabled={isMeasuring} variant="secondary" className="rounded-full">
+              Tare
+            </Button>
+            <Button onClick={disconnect} variant="destructive" className="rounded-full">
+              Disconnect
+            </Button>
+          </>
         )}
       </CardFooter>
     </Card>
