@@ -1,0 +1,111 @@
+## Project Context
+
+You are working on the Tindeq Progressor Web Interface, a web application that connects to and displays data from Tindeq Progressor devices (portable digital hanging scales for climbers). The application uses Web Bluetooth API to communicate with these devices, visualizing force measurements in real-time.
+
+## Technical Stack
+
+- **Framework**: Next.js with React 19 and TypeScript
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **State Management**: Zustand
+- **Data Visualization**: Chart.js with react-chartjs-2
+- **Bluetooth**: Web Bluetooth API
+- **Icons**: react-icons and lucide-react
+
+## Code Style Guidelines
+
+### TypeScript
+
+- Write strongly-typed code with explicit return types for functions
+- Use interfaces for complex object shapes
+- Prefer type inference where appropriate to reduce verbosity
+- Utilize discriminated unions for state management
+
+### React Components
+
+- Use functional components with hooks
+- Implement proper error boundaries for Bluetooth operations
+- Separate UI components from logic with custom hooks
+- Follow the file structure conventions of Next.js App Router
+
+### CSS/Styling
+
+- Use Tailwind utility classes for styling
+- Leverage shadcn/ui components when possible
+- Follow mobile-first responsive design approach
+- Use clsx/tailwind-merge for conditional class names
+
+### Performance Considerations
+
+- Optimize Chart.js rendering for real-time data visualization
+- Be mindful of Bluetooth API polling frequencies
+- Implement proper cleanup in useEffect hooks
+- Use React.memo and useMemo for expensive calculations
+
+## Architecture Guidelines
+
+### Bluetooth Communication
+
+- Encapsulate Bluetooth logic in dedicated services
+- Handle reconnection logic gracefully
+- Implement proper error handling for device communication
+- Use watchdog timers to detect connection interruptions
+
+### State Management
+
+- Use Zustand for global application state
+- Follow immutable state update patterns
+- Separate UI state from device/connection state
+- Implement proper persistence where needed
+
+### Data Visualization
+
+- Optimize chart rendering for real-time updates
+- Use appropriate scales and colors for visual feedback
+- Implement smooth animations without performance impact
+- Follow accessibility guidelines for color contrast
+
+## Project-Specific Rules
+
+### Device Communication
+
+- Follow the Tindeq Progressor GATT service protocol
+- Handle edge cases like connection drops and measurement errors
+- Implement tare functionality according to device specifications
+- Battery level monitoring should be efficient (low polling frequency)
+
+### User Experience
+
+- Provide clear feedback about connection status
+- Implement intuitive target setting with visual indicators
+- Ensure responsive design works on various devices
+- Dark/light mode should be consistent across all components
+
+### Code Organization
+
+- `/app/hooks` - Custom React hooks
+- `/app/utils` - Utility functions
+- `/app/store` - Zustand state management
+- `/components/ui` - Reusable UI components
+- `/app/components` - Page-specific components
+
+## Implementation Priorities
+
+1. Ensure reliable device connection
+2. Accurate force measurement and visualization
+3. Responsive and accessible UI
+4. Performance optimization, especially for real-time data
+5. Cross-browser compatibility (within Web Bluetooth API limitations)
+
+## When Adding New Features
+
+- Consider backward compatibility with existing device protocol
+- Test on both desktop and mobile browsers where supported
+- Ensure new features don't compromise performance
+- Update documentation for any protocol or API changes
+
+## Coding Helpers
+
+- When implementing new Chart.js features, reference Chart.js v4 documentation
+- For shadcn/ui components, follow their established patterns
+- When working with Web Bluetooth API, check browser compatibility
+- Use Zustand's devtools during development for state debugging
