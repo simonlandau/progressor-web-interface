@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import DeviceConnection from "./components/DeviceConnection";
-import ForceMeasurement from "./components/ForceMeasurement";
+import MeasurementTabs from "./components/MeasurementTabs";
 import { useTindeq } from "./hooks/useTindeq";
 
 export default function Home() {
@@ -26,7 +26,7 @@ export default function Home() {
       </header>
 
       <main className="max-w-4xl mx-auto flex flex-col gap-8">
-        <ForceMeasurement />
+        <MeasurementTabs />
       </main>
 
       <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
