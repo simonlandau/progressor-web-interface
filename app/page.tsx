@@ -22,9 +22,9 @@ export default function Home() {
 
       <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
         <p>
-          Web Bluetooth API compatible browser (Chrome, Edge, Opera on desktop and Android) required.
+          Web Bluetooth API compatible browser (Chrome, Edge, Opera on desktop and Android) required
           <br />
-          This unofficial project is not affiliated with Tindeq.
+          This unofficial project is not affiliated with Tindeq
           <br />
         </p>
       </footer>
