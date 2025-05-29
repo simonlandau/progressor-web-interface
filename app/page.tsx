@@ -15,7 +15,7 @@ export default function Home() {
   useTindeqMeasurementCleanup();
 
   return (
-    <div className="min-h-screen px-8 pt-8 pb-20 gap-8 sm:px-10 font-[family-name:var(--font-geist-sans)]">
+    <div className="px-8 pt-8 pb-20 gap-8 sm:px-10 font-[family-name:var(--font-geist-sans)]">
       <main className="max-w-4xl mx-auto flex flex-col gap-8">
         <MeasurementTabs />
       </main>
