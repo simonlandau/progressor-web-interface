@@ -69,11 +69,35 @@ This application uses the Web Bluetooth API to communicate with the Tindeq Progr
 
 ### Architecture
 
-The application is built with Next.js and React, using TypeScript for type safety. The main components are:
+The application is built with Next.js and React, using TypeScript for type safety. The architecture follows a provider + focused hooks pattern for robust state management and service initialization.
 
-- **DeviceConnection**: Handles Bluetooth connection to the Tindeq device, displays connection status, battery level, and firmware version
-- **ForceMeasurement**: Displays and records force measurements in real-time, showing current and maximum force values along with a visual graph
+#### Core Components
+
+- **Header**: Contains the site branding and control buttons (Bluetooth popover and theme toggle)
+- **DeviceConnection**: Bluetooth connection interface displayed in a popover, handles device pairing and connection status
+- **ForceMeasurement**: Displays and records force measurements in real-time with visual feedback
+- **MeasurementTabs**: Tab interface for switching between Live Measurement and Programs
+
+#### State Management Architecture
+
+- **TindeqProvider**: App-level provider that initializes Bluetooth services and handles device communication
+- **useTindeqStore**: Zustand store for global application state
+- **Focused Hooks**: Composable hooks with single responsibilities:
+  - `useTindeqTimer`: Handles elapsed time updates during measurement
+  - `useTindeqWatchdog`: Detects and handles measurement interruptions
+  - `useTindeqAutoReconnect`: Manages automatic reconnection attempts
+  - `useTindeqMeasurementCleanup`: Handles measurement lifecycle and cleanup
+
+#### Service Layer
+
 - **TindeqBluetoothService**: Core utility that manages the Bluetooth communication protocol with the device
+
+This architecture ensures:
+
+- **Reliability**: Service initialization happens once at the app level
+- **Composability**: Hooks can be used independently based on component needs
+- **Maintainability**: Each hook has a single, clear responsibility
+- **Performance**: Direct store access where no additional logic is needed
 
 ### UI Framework
 
@@ -81,7 +105,7 @@ The application uses:
 
 - **shadcn/ui**: A collection of reusable components built with Radix UI and Tailwind CSS
 - **Tailwind CSS**: For styling and responsive design
-- **react-icons**: For icon components
+- **react-icons & lucide-react**: For icon components
 - **Chart.js**: For data visualization
 - **Zustand**: For state management
 

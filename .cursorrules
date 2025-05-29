@@ -26,6 +26,8 @@ You are working on the Tindeq Progressor Web Interface, a web application that c
 - Implement proper error boundaries for Bluetooth operations
 - Separate UI components from logic with custom hooks
 - Follow the file structure conventions of Next.js App Router
+- Use providers for global service initialization
+- Create focused, composable hooks with single responsibilities
 
 ### CSS/Styling
 
@@ -49,6 +51,7 @@ You are working on the Tindeq Progressor Web Interface, a web application that c
 - Handle reconnection logic gracefully
 - Implement proper error handling for device communication
 - Use watchdog timers to detect connection interruptions
+- Initialize Bluetooth services at the app level using providers
 
 ### State Management
 
@@ -56,6 +59,15 @@ You are working on the Tindeq Progressor Web Interface, a web application that c
 - Follow immutable state update patterns
 - Separate UI state from device/connection state
 - Implement proper persistence where needed
+- Access store directly in components when no additional logic is needed
+
+### Hook Architecture
+
+- **Providers**: Use for app-level service initialization (TindeqProvider)
+- **Focused Hooks**: Create hooks with single responsibilities (timer, watchdog, auto-reconnect)
+- **Composable**: Design hooks to be used independently or together
+- **Avoid Monolithic Hooks**: Don't create hooks that handle multiple unrelated concerns
+- **Direct Store Access**: Use store directly when no additional logic is needed
 
 ### Data Visualization
 
@@ -82,7 +94,8 @@ You are working on the Tindeq Progressor Web Interface, a web application that c
 
 ### Code Organization
 
-- `/app/hooks` - Custom React hooks
+- `/app/hooks` - Custom React hooks (focused, single-purpose)
+- `/app/providers` - React providers for app-level services
 - `/app/utils` - Utility functions
 - `/app/store` - Zustand state management
 - `/components/ui` - Reusable UI components
@@ -102,6 +115,7 @@ You are working on the Tindeq Progressor Web Interface, a web application that c
 - Test on both desktop and mobile browsers where supported
 - Ensure new features don't compromise performance
 - Update documentation for any protocol or API changes
+- Follow the provider + focused hooks pattern for new functionality
 
 ## Coding Helpers
 
@@ -109,3 +123,5 @@ You are working on the Tindeq Progressor Web Interface, a web application that c
 - For shadcn/ui components, follow their established patterns
 - When working with Web Bluetooth API, check browser compatibility
 - Use Zustand's devtools during development for state debugging
+- Create focused hooks instead of monolithic ones
+- Use providers for service initialization, hooks for component-specific logic

@@ -2,10 +2,17 @@
 
 import * as React from "react";
 import MeasurementTabs from "./components/MeasurementTabs";
-import { useTindeq } from "./hooks/useTindeq";
+import { useTindeqTimer } from "./hooks/useTindeqTimer";
+import { useTindeqWatchdog } from "./hooks/useTindeqWatchdog";
+import { useTindeqAutoReconnect } from "./hooks/useTindeqAutoReconnect";
+import { useTindeqMeasurementCleanup } from "./hooks/useTindeqMeasurementCleanup";
 
 export default function Home() {
-  useTindeq();
+  // Use focused hooks for specific functionality
+  useTindeqTimer();
+  useTindeqWatchdog();
+  useTindeqAutoReconnect();
+  useTindeqMeasurementCleanup();
 
   return (
     <div className="min-h-screen px-8 pt-8 pb-20 gap-8 sm:px-10 font-[family-name:var(--font-geist-sans)]">
@@ -19,9 +26,6 @@ export default function Home() {
           <br />
           This unofficial project is not affiliated with Tindeq.
           <br />
-          <a href="https://github.com/simonlandau/progressor-web-interface" target="_blank" rel="noopener noreferrer">
-            View source code on GitHub
-          </a>
         </p>
       </footer>
     </div>

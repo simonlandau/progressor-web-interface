@@ -2,10 +2,10 @@
 
 import { FaBluetooth, FaBluetoothB, FaBatteryHalf, FaSync } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import { useTindeq } from "../hooks/useTindeq";
+import useTindeqStore from "../store/tindeqStore";
 
 export default function DeviceConnection() {
-  const { isConnected, isConnecting, deviceInfo, error, connect, disconnect, handleManualReconnect, tareScale, isMeasuring } = useTindeq();
+  const { isConnected, isConnecting, deviceInfo, error, connect, disconnect, handleManualReconnect, tareScale, isMeasuring } = useTindeqStore();
 
   return (
     <div className="p-4 space-y-4">
