@@ -14,6 +14,8 @@ import { AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import useSettingsStore from "../store/settingsStore";
+import { formatForce, convertToKg, convertFromKg, UNITS } from "../utils/units";
 
 export default function Program() {
   const {
@@ -34,6 +36,7 @@ export default function Program() {
 
   const { isConnected, currentForce } = useTindeqStore();
   const { TARGET_TOLERANCE, TARGET_TOLERANCE_WARNING } = useTarget();
+  const { unit } = useSettingsStore();
 
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [editingBlock, setEditingBlock] = useState<ProgramBlock | null>(null);
@@ -78,7 +81,7 @@ export default function Program() {
       name: blockForm.name,
       type: blockForm.type,
       duration: blockForm.duration,
-      targetForce: blockForm.type === "pull" && blockForm.targetForce ? parseFloat(blockForm.targetForce) : null,
+      targetForce: blockForm.type === "pull" && blockForm.targetForce ? convertToKg(parseFloat(blockForm.targetForce), unit) : null,
     });
 
     resetBlockForm();
@@ -92,7 +95,7 @@ export default function Program() {
       name: blockForm.name,
       type: blockForm.type,
       duration: blockForm.duration,
-      targetForce: blockForm.type === "pull" && blockForm.targetForce ? parseFloat(blockForm.targetForce) : null,
+      targetForce: blockForm.type === "pull" && blockForm.targetForce ? convertToKg(parseFloat(blockForm.targetForce), unit) : null,
     });
 
     resetBlockForm();
@@ -106,7 +109,7 @@ export default function Program() {
       name: block.name,
       type: block.type,
       duration: block.duration,
-      targetForce: block.targetForce !== null ? block.targetForce.toString() : "",
+      targetForce: block.targetForce !== null ? convertFromKg(block.targetForce, unit).toFixed(unit === "lbs" ? 1 : 1) : "",
     });
     setShowBlockDialog(true);
   };
@@ -182,7 +185,7 @@ export default function Program() {
                     {currentBlock.type === "pull" ? <FaDumbbell className="mr-2 text-500" /> : <FaClock className="mr-2 text-500" />}
                     {currentBlock.name}
                     {currentBlock.type === "pull" && currentBlock.targetForce && (
-                      <span className="ml-2 text-sm font-normal">({currentBlock.targetForce} kg)</span>
+                      <span className="ml-2 text-sm font-normal">({formatForce(currentBlock.targetForce, unit)})</span>
                     )}
                   </div>
                 </div>
@@ -200,7 +203,7 @@ export default function Program() {
               {isRunning && currentBlock?.type === "pull" && (
                 <div className="p-2">
                   <span className="text-sm text-muted-foreground">Current Force</span>
-                  <div className="text-3xl font-bold">{currentForce ? currentForce.toFixed(1) : 0} kg</div>
+                  <div className="text-3xl font-bold">{formatForce(currentForce, unit)}</div>
                 </div>
               )}
             </div>
@@ -322,12 +325,12 @@ export default function Program() {
 
                   {blockForm.type === "pull" && (
                     <div>
-                      <Label htmlFor="block-target">Target Force (kg, optional)</Label>
+                      <Label htmlFor="block-target">Target Force ({UNITS[unit].symbol}, optional)</Label>
                       <Input
                         id="block-target"
                         type="number"
                         min="0"
-                        step="0.1"
+                        step={unit === "lbs" ? "0.2" : "0.1"}
                         value={blockForm.targetForce}
                         onChange={(e) => setBlockForm({ ...blockForm, targetForce: e.target.value })}
                         className="mt-2"
@@ -388,7 +391,7 @@ export default function Program() {
                       <span className="font-medium">{block.name}</span>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {formatTime(block.duration)} {block.type === "pull" && block.targetForce && `• ${block.targetForce} kg`}
+                      {formatTime(block.duration)} {block.type === "pull" && block.targetForce && `• ${formatForce(block.targetForce, unit)}`}
                     </div>
                   </div>
                 </div>

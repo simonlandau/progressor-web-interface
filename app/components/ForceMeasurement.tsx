@@ -7,8 +7,10 @@ import annotationPlugin from "chartjs-plugin-annotation";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import useTindeqStore from "../store/tindeqStore";
+import useSettingsStore from "../store/settingsStore";
 import { useForceChart } from "../hooks/useForceChart";
 import { useTarget } from "../hooks/useTarget";
+import { formatForce, UNITS } from "../utils/units";
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +35,7 @@ export default function ForceMeasurement() {
     getElapsedTime,
   } = useTindeqStore();
 
+  const { unit } = useSettingsStore();
   const { targetValue, targetInput, targetStatus, handleTargetChange, handleTargetSubmit, clearTarget } = useTarget();
 
   const { chartData, chartOptions } = useForceChart(measurements, startTime, elapsedTime, maxForce);
@@ -51,11 +54,11 @@ export default function ForceMeasurement() {
               </div>
               <div className="w-28">
                 <span className="text-sm text-muted-foreground">Current</span>
-                <div className="text-3xl font-bold">{currentForce !== null ? `${currentForce.toFixed(1)} kg` : "-"}</div>
+                <div className="text-3xl font-bold">{formatForce(currentForce, unit)}</div>
               </div>
               <div className="w-28">
                 <span className="text-sm text-muted-foreground">Max</span>
-                <div className="text-3xl font-bold text-muted-foreground">{maxForce !== null ? `${maxForce.toFixed(1)} kg` : "-"}</div>
+                <div className="text-3xl font-bold text-muted-foreground">{formatForce(maxForce, unit)}</div>
               </div>
             </div>
           </div>
@@ -66,24 +69,24 @@ export default function ForceMeasurement() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="secondary" size="default">
                     <FaFlag className="mr-2" />
-                    <span>{targetValue !== null ? `Target ${targetValue.toFixed(1)} kg` : "Set Target"}</span>
+                    <span>{targetValue !== null ? `Target ${formatForce(targetValue, unit)}` : "Set Target"}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 p-3">
                   <div className="space-y-2">
                     <Label htmlFor="target-dropdown" className="text-xs">
-                      Target Force (kg)
+                      Target Force ({UNITS[unit].symbol})
                     </Label>
                     <div className="flex space-x-2">
                       <Input
                         id="target-dropdown"
                         type="number"
                         min="0"
-                        step="0.1"
+                        step={unit === "lbs" ? "0.2" : "0.1"}
                         value={targetInput}
                         onChange={handleTargetChange}
                         className="w-full"
-                        placeholder="kg"
+                        placeholder={UNITS[unit].symbol}
                       />
                     </div>
                     <div className="flex space-x-2 pt-2">
@@ -134,7 +137,7 @@ export default function ForceMeasurement() {
         {targetStatus && (
           <div className={`mb-4 mt-2 p-3 rounded-md text-sm flex items-center justify-between ${targetStatus.className}`}>
             <span>
-              Target <strong>{targetValue?.toFixed(1)} kg</strong> | Distance <strong>{targetStatus.distance.toFixed(1)} kg</strong>
+              Target <strong>{formatForce(targetValue, unit)}</strong> | Distance <strong>{formatForce(targetStatus.distance, unit)}</strong>
             </span>
             <span>{targetStatus.message}</span>
           </div>
