@@ -6,6 +6,7 @@ import { Weight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ModeToggle } from "./ModeToggle";
+import { SettingsButton } from "./SettingsButton";
 import DeviceConnection from "@/app/components/DeviceConnection";
 import useTindeqStore from "@/app/store/tindeqStore";
 
@@ -21,6 +22,8 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
+          <SettingsButton />
+
           <Popover>
             <PopoverTrigger asChild>
               <Button

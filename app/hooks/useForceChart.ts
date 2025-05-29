@@ -3,12 +3,15 @@ import { useTheme } from "next-themes";
 import { MeasurementData } from "../../types/tindeq";
 import { ChartData, ChartOptions } from "chart.js";
 import { useTarget } from "./useTarget";
+import useSettingsStore from "../store/settingsStore";
+import { convertFromKg, formatForce, UNITS } from "../utils/units";
 
 /**
  * Hook for managing force measurement chart data and options
  */
 export function useForceChart(measurements: MeasurementData[], startTime: number | null, elapsedTime: number, maxForce: number | null) {
   const { resolvedTheme } = useTheme();
+  const { unit } = useSettingsStore();
   const { targetValue, getTargetLineColor } = useTarget();
 
   // Get line color based on theme
@@ -20,28 +23,30 @@ export function useForceChart(measurements: MeasurementData[], startTime: number
     return resolvedTheme === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)";
   }, [resolvedTheme]);
 
-  // Calculate the y-axis maximum based on current measurements
+  // Calculate the y-axis maximum based on current measurements (in selected unit)
   const calculateYAxisMax = useMemo(() => {
-    // Default to 20kg if no measurements or maxForce
+    // Default to 20kg converted to the selected unit
+    const defaultMax = convertFromKg(20, unit);
+
     if (!measurements.length || maxForce === null) {
-      return 20;
+      return defaultMax;
     }
 
-    // Get the highest force value from measurements
-    const highestMeasurement = Math.max(...measurements.map((m) => m.weight));
+    // Get the highest force value from measurements (converted to selected unit)
+    const highestMeasurement = convertFromKg(Math.max(...measurements.map((m) => m.weight)), unit);
 
-    // If we have a target, make sure it's visible
-    const targetAdjustment = targetValue ? Math.max(0, targetValue - highestMeasurement) : 0;
+    // If we have a target, make sure it's visible (target is already in kg, convert to selected unit)
+    const targetAdjustment = targetValue ? Math.max(0, convertFromKg(targetValue, unit) - highestMeasurement) : 0;
 
     // If we're approaching the current max (within 80%), increase the max by 25%
-    if (highestMeasurement > 16 || targetAdjustment > 0) {
-      // 80% of default 20kg
+    const threshold = defaultMax * 0.8; // 80% of default
+    if (highestMeasurement > threshold || targetAdjustment > 0) {
       const newMax = Math.ceil((highestMeasurement + targetAdjustment) * 1.25);
-      return Math.max(newMax, 20); // Never go below 20kg
+      return Math.max(newMax, defaultMax); // Never go below default
     }
 
-    return 20; // Default to 20kg
-  }, [measurements, maxForce, targetValue]);
+    return defaultMax;
+  }, [measurements, maxForce, targetValue, unit]);
 
   // Memoize chart data
   const chartData: ChartData<"line"> = useMemo(
@@ -63,8 +68,8 @@ export function useForceChart(measurements: MeasurementData[], startTime: number
       }),
       datasets: [
         {
-          label: "Force (kg)",
-          data: measurements.map((m) => m.weight),
+          label: `Force (${UNITS[unit].symbol})`,
+          data: measurements.map((m) => convertFromKg(m.weight, unit)),
           borderColor: getLineColor,
           backgroundColor: getLineBackgroundColor,
           tension: 0.2,
@@ -74,7 +79,7 @@ export function useForceChart(measurements: MeasurementData[], startTime: number
         },
       ],
     }),
-    [measurements, startTime, elapsedTime, getLineColor, getLineBackgroundColor]
+    [measurements, startTime, elapsedTime, getLineColor, getLineBackgroundColor, unit]
   );
 
   // Memoize chart options
@@ -97,11 +102,11 @@ export function useForceChart(measurements: MeasurementData[], startTime: number
       scales: {
         y: {
           beginAtZero: true,
-          suggestedMax: 20, // Default maximum of 20kg
+          suggestedMax: convertFromKg(20, unit),
           max: calculateYAxisMax,
           title: {
             display: true,
-            text: "Force (kg)",
+            text: `Force (${UNITS[unit].symbol})`,
           },
         },
         x: {
@@ -123,18 +128,19 @@ export function useForceChart(measurements: MeasurementData[], startTime: number
 
     // Only add annotation if we have a target value
     if (targetValue !== null && options.plugins) {
+      const targetInSelectedUnit = convertFromKg(targetValue, unit);
       options.plugins.annotation = {
         annotations: {
           targetLine: {
             type: "line" as const,
-            yMin: targetValue,
-            yMax: targetValue,
+            yMin: targetInSelectedUnit,
+            yMax: targetInSelectedUnit,
             borderColor: getTargetLineColor,
             borderWidth: 2,
             borderDash: [5, 5],
             label: {
               display: true,
-              content: `Target ${targetValue} kg`,
+              content: `Target ${formatForce(targetValue, unit)}`,
               position: "end",
               backgroundColor: getTargetLineColor,
               color: "white",
@@ -148,7 +154,7 @@ export function useForceChart(measurements: MeasurementData[], startTime: number
     }
 
     return options;
-  }, [calculateYAxisMax, targetValue, getTargetLineColor]);
+  }, [calculateYAxisMax, targetValue, getTargetLineColor, unit]);
 
   return {
     chartData,

@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useTindeqStore from "../store/tindeqStore";
+import useSettingsStore from "../store/settingsStore";
+import { convertToKg, convertFromKg } from "../utils/units";
 
 // Constants
 const TARGET_TOLERANCE = 1;
@@ -10,7 +12,18 @@ const TARGET_TOLERANCE_WARNING = 3;
  */
 export function useTarget() {
   const { targetValue, setTargetValue, currentForce } = useTindeqStore();
-  const [targetInput, setTargetInput] = useState<string>(targetValue?.toString() || "");
+  const { unit } = useSettingsStore();
+  const [targetInput, setTargetInput] = useState<string>("");
+
+  // Update target input when target value or unit changes
+  useEffect(() => {
+    if (targetValue !== null) {
+      const displayValue = convertFromKg(targetValue, unit);
+      setTargetInput(displayValue.toFixed(unit === "lbs" ? 1 : 1));
+    } else {
+      setTargetInput("");
+    }
+  }, [targetValue, unit]);
 
   // Handle target input change
   const handleTargetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,7 +35,9 @@ export function useTarget() {
     if (e) e.preventDefault();
     const value = parseFloat(targetInput);
     if (!isNaN(value) && value > 0) {
-      setTargetValue(value);
+      // Convert the input value to kg for storage
+      const valueInKg = convertToKg(value, unit);
+      setTargetValue(valueInKg);
     } else {
       setTargetValue(null);
       setTargetInput("");
